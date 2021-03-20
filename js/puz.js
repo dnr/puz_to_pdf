@@ -383,3 +383,4 @@ var ActiveXObject, parsedPuz, filecontents, PUZAPP = {};
 }());
 
 
+module.exports = PUZAPP;

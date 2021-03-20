@@ -1048,3 +1048,7 @@ function puzdata_to_pdf(puzdata,options) {
         doc.save(options.outfile); 
     }
 }
+
+exports.draw_crossword_grid = draw_crossword_grid;
+exports.puzdata_to_nyt = puzdata_to_nyt;
+exports.puzdata_to_pdf = puzdata_to_pdf;
