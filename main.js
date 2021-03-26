@@ -1,6 +1,19 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
+const yargs = require('yargs');
+
+const argv = yargs
+    .option('solution', {
+        alias: 's',
+        description: 'render the solution instead of a blank grid',
+        type: 'boolean',
+        default: false,
+    })
+    .help()
+    .alias('help', 'h')
+    .argv;
+
 
 // monkey-patch some things that puz.js and puz_functions.js expect
 global.window = global;
@@ -21,12 +34,15 @@ require("./js/RobotoCondensed-normal");
 //require("./js/OpenSansCondensed-bold");
 //require("./js/OpenSansCondensed-normal");
 
-function convert(filename) {
+function convert(filename, solution) {
   var contents = fs.readFileSync(filename).toString('binary');
   var puzdata = puz.parsepuz(contents);
   var outname = filename.replace(/[.](puz|ipuz|jpz|rgz)$/, '.pdf');
   if (outname === filename)
     outname += '.pdf';
+  if (solution) {
+    outname = outname.replace('.pdf', '-solution.pdf');
+  }
   var options = {
     outfile: outname,
     output: 'download',
@@ -58,7 +74,7 @@ function convert(filename) {
     heading_style: 'bold',
     number_style: 'bold',
     shade: false,
-    solution: false,
+    solution: solution,
     // header_font: document.getElementById('headerFont').value,
     // grid_font: document.getElementById('gridFont').value,
     // clue_font: document.getElementById('clueFont').value,
@@ -76,4 +92,7 @@ function convert(filename) {
   funcs.puzdata_to_pdf(puzdata, options);
 }
 
-process.argv.slice(2).forEach(convert);
+if (argv._.length != 1) {
+    throw 'Need exactly one positional arg (path to file to convert)';
+}
+convert(argv._[0], argv.solution);
