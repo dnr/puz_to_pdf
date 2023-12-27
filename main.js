@@ -33,6 +33,7 @@ require("./js/RobotoCondensed-bold");
 require("./js/RobotoCondensed-normal");
 //require("./js/OpenSansCondensed-bold");
 //require("./js/OpenSansCondensed-normal");
+// custom fonts:
 require("./js/RobotoSerif-bold");
 require("./js/RobotoSerif-normal");
 require("./js/RobotoMono-bold");
@@ -59,35 +60,45 @@ function convert(filename, solution) {
     subheader_align: 'center',
     y_align: 'alphabetic',
     gray: 0,
-    // number: document.getElementById('numberSize').value,
-    // clue_entry_pt: document.getElementById('cFontSize').value*1,
-    // header_pt: document.getElementById('hFontSize').value*1,
+    // number: 10,
+    clue_entry_pt: 10,
+
+    header_pt: 40,
     // header2_pt: document.getElementById('h2FontSize').value*1,
     // subheader_pt: document.getElementById('sFontSize').value*1,
-    // margin: document.getElementById('marginSize').value*72,
-    // side_margin: document.getElementById('sidemarginSize').value*72,
+
+    margin: 160,
+    side_margin: 80,
     // bottom_margin: document.getElementById('bottommarginSize').value*72,
+
     // header_width: document.getElementById('headerWidth').value*.01,
-    // grid_padding: document.getElementById('gridPadding').value*1,
+    grid_padding: 40,
+    under_title_padding: 40,
     // header_indent: document.getElementById('hlPadding').value*1,
     // subheader_indent: document.getElementById('slPadding').value*1,
     // subheader_mt: document.getElementById('hsPadding').value*1,
-    // under_title_padding: document.getElementById('hbPadding').value*1,
-    // line_width: document.getElementById('lineWidth').value*1,
-    // border_width: document.getElementById('borderWidth').value*1,
+
+    line_width: 0.8,
+    border_width: 0.8,
     // column_padding: document.getElementById('columnPadding').value*1,
-    // clue_spacing: document.getElementById('interSpacing').value-1,
+    
+    clue_spacing: 0.5,
+    
     heading_style: 'normal',
     number_style: 'bold',
+
     shade: false,
     solution: solution,
+
     header_font: 'RobotoSerif',
     grid_font: 'RobotoMono',
     clue_font: 'AtkinsonHyperlegible',
-    right_header: false,
+
+    right_header: true,
     subheader: true,
     copyright: false,
-    // copyright_text: document.getElementById('copyright').value,
+    // copyright_text: 'Play online at csartisan.org/games',
+
     // columns: document.getElementById('columns').value,
     grid_placement: 'top'
     // logoX: document.getElementById('logoX').value*1,

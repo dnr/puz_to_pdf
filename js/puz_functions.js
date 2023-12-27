@@ -631,7 +631,7 @@ function puzdata_to_pdf(puzdata,options) {
         
         if (i==0) {
             across_nums.push(num);
-            across_clues.push('ACROSS\n' + clue);            
+            across_clues.push('Across\n' + clue);            
         }
         else {
             across_nums.push(num);
@@ -649,7 +649,7 @@ function puzdata_to_pdf(puzdata,options) {
         var clue = puzdata.down_clues[num];
         if (i==0) {
             down_nums.push(num);
-            down_clues.push('DOWN\n' + clue);
+            down_clues.push('Down\n' + clue);
         }
         else {
             down_nums.push(num);
