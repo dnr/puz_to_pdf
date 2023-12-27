@@ -33,6 +33,12 @@ require("./js/RobotoCondensed-bold");
 require("./js/RobotoCondensed-normal");
 //require("./js/OpenSansCondensed-bold");
 //require("./js/OpenSansCondensed-normal");
+require("./js/RobotoSerif-bold");
+require("./js/RobotoSerif-normal");
+require("./js/RobotoMono-bold");
+require("./js/RobotoMono-normal");
+require("./js/AtkinsonHyperlegible-bold");
+require("./js/AtkinsonHyperlegible-normal");
 
 function convert(filename, solution) {
   var contents = fs.readFileSync(filename).toString('binary');
@@ -48,9 +54,9 @@ function convert(filename, solution) {
     output: 'download',
     // customizable:
     my_font: '',
-    header_align: 'left',
-    header2_align: 'right',
-    subheader_align: 'left',
+    header_align: 'center',
+    header2_align: 'center',
+    subheader_align: 'center',
     y_align: 'alphabetic',
     gray: 0,
     // number: document.getElementById('numberSize').value,
@@ -71,16 +77,16 @@ function convert(filename, solution) {
     // border_width: document.getElementById('borderWidth').value*1,
     // column_padding: document.getElementById('columnPadding').value*1,
     // clue_spacing: document.getElementById('interSpacing').value-1,
-    heading_style: 'bold',
+    heading_style: 'normal',
     number_style: 'bold',
     shade: false,
     solution: solution,
-    // header_font: document.getElementById('headerFont').value,
-    // grid_font: document.getElementById('gridFont').value,
-    // clue_font: document.getElementById('clueFont').value,
-    right_header: true,
-    subheader: false,
-    copyright: true,
+    header_font: 'RobotoSerif',
+    grid_font: 'RobotoMono',
+    clue_font: 'AtkinsonHyperlegible',
+    right_header: false,
+    subheader: true,
+    copyright: false,
     // copyright_text: document.getElementById('copyright').value,
     // columns: document.getElementById('columns').value,
     grid_placement: 'top'
