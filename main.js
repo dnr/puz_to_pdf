@@ -147,6 +147,7 @@ function convert(filename, solution, wordDate, defaultTitle, customTitle) {
     cell_size: 36,
 
     line_width: 0.8,
+    border: false,
     // border-width: 0.6,
     // column_padding: document.getElementById('columnPadding').value*1,
 

@@ -43,7 +43,7 @@ function draw_crossword_grid(doc, puzdata, options) {
 
 
     /** Function to draw a square **/
-    function draw_square(doc, x1, y1, cell_size, number, letter, filled, circle) {
+    function draw_square(doc, x1, y1, cell_size, number, letter, filled, circle, corner) {
         var number_offset = cell_size / 18;
         var number_size = cell_size * options.number_pct / 100;
         var letter_size = cell_size / (100 / options.letter_pct);
@@ -51,6 +51,12 @@ function draw_crossword_grid(doc, puzdata, options) {
         var br = 0;
         // var br = cell_size/5;
 
+        // Finds what corner the current square is
+        if (corner !== 0) {
+            // Do something with the corner value (1, 2, 3, or 4)
+            console.log(`i: ${i}, j: ${j}, corner: ${corner}`);
+        }
+        
         doc.setFillColor(options.gray.toString());
         doc.setDrawColor(options.gray.toString());
 
@@ -96,12 +102,36 @@ function draw_crossword_grid(doc, puzdata, options) {
 
     var width = puzdata.width;
     var height = puzdata.height;
+    // console.log(puzdata.width, puzdata.height)
+
+    // Function to set the "corner" variable based on location
+    function setCorner(i, j) {
+        if (i === 0 && j === 0) {
+            return 1; // Top-left corner
+        } else if (i === 0 && j === 4) {
+            return 2; // Top-right corner
+        } else if (i === 4 && j === 0) {
+            return 3; // Bottom-left corner
+        } else if (i === 4 && j === 4) {
+            return 4; // Bottom-right corner
+        } else {
+            return 0; // Not a corner
+        }
+    }
+
     for (var i = 0; i < height; i++) {
         var y_pos = options.y0 + i * cell_size;
         for (var j = 0; j < width; j++) {
             var x_pos = options.x0 + j * cell_size;
             var grid_index = j + i * width;
             var filled = false;
+            let corner = setCorner(i, j);
+            /*        
+            // Check to see if square is a corner
+            if ((i+" "+j) === "0 0" || (i + " " + j) === "0 4" || (i + " " + j) === "4 0" || (i + " " + j) === "4 4") {
+                var corner = true;
+            }
+            */
 
             // Letters
             var letter = puzdata.solution.charAt(grid_index);
@@ -116,7 +146,8 @@ function draw_crossword_grid(doc, puzdata, options) {
 
             // Circle
             var circle = puzdata.circles[grid_index];
-            draw_square(doc, x_pos, y_pos, cell_size, number, letter, filled, circle);
+            console.log(i,j)
+            draw_square(doc, x_pos, y_pos, cell_size, number, letter, filled, circle, corner);
         }
     }
 }
@@ -846,9 +877,16 @@ function puzdata_to_pdf(puzdata, options) {
     draw_crossword_grid(doc, puzdata, grid_options);
 
     // Draw border
-    if (options.border_width > options.line_width) {
-        doc.setLineWidth(options.border_width);
-        doc.roundedRect(grid_xpos - options.border_width / 2, (margin + header_height + 3) - options.border_width / 2, grid_width + options.border_width, (grid_width * puzdata.height / puzdata.width) + options.border_width, 10, 10);
+    if (options.border) {
+    doc.setLineWidth(options.border_width);
+        doc.roundedRect(
+            grid_xpos - options.border_width / 2
+        ,   (margin + header_height + 3) - options.border_width / 2
+        ,   grid_width + options.border_width
+        ,   (grid_width * puzdata.height / puzdata.width) + options.border_width
+        // border radius
+        ,   0, 0
+        );
     }
 
     if (options.output == 'preview') {
