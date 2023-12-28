@@ -2,23 +2,67 @@
 
 const fs = require('fs');
 const yargs = require('yargs');
+const moment = require('moment'); // For Node.js environments
 
 const argv = yargs
-    .option('solution', {
-        alias: 's',
-        description: 'render the solution instead of a blank grid',
-        type: 'boolean',
-        default: false,
-    })
-    .help()
-    .alias('help', 'h')
-    .argv;
+  .scriptName("puz-to-pdf-csartisan")
+  .usage('$0 <file> [args]')
 
+  // Solution ARG
+  .option(
+    'solution', {
+    alias: 's',
+    description: 'render the solution instead of a blank grid',
+    type: 'boolean',
+    default: false,
+  }
+  )
+
+  // Date ARG
+  .option(
+    'date', {
+    alias: 'd',
+    description: 'specify a date in (MMDDYY) format',
+    type: 'string',
+  }
+  )
+
+  // Date ARG
+  .option(
+    'title', {
+    alias: 't',
+    description: 'specify a custom title',
+    type: 'string',
+  }
+  )
+
+  // Date ARG
+  .option(
+    'defaulttitle', {
+    alias: 'g',
+    description: "set title to 'Today's Mini Crossword'",
+    type: 'boolean',
+    default: false,
+  }
+  )
+
+  .help()
+  .alias('help', 'h')
+  .argv;
+
+/* Date */
+if (argv.date) {
+  // console.log("Input date:", argv.date);
+  var wordDate = moment(argv.date, "MMDDYY").format('MMMM D, YYYY');
+  console.log("Date:", wordDate);
+} else {
+  console.warn("No date specified, skipping...");
+}
 
 // monkey-patch some things that puz.js and puz_functions.js expect
 global.window = global;
 global.jspdf = require('jspdf');
-global.alert = function(...args) {
+global.alert = function (...args) {
   console.error(...args);
   process.exit(1);
 };
@@ -26,6 +70,7 @@ global.alert = function(...args) {
 const puz = require("./js/puz");
 const funcs = require("./js/puz_functions");
 
+/* Get Fonts */
 // requiring these loads them into jspdf
 require("./js/NunitoSans-Regular-bold");
 require("./js/NunitoSans-Regular-normal");
@@ -42,7 +87,7 @@ require("./js/AtkinsonHyperlegible-bold");
 require("./js/AtkinsonHyperlegible-normal");
 require("./js/AtkinsonHyperlegible-italic");
 
-function convert(filename, solution) {
+function convert(filename, solution, wordDate, defaultTitle, customTitle) {
   var contents = fs.readFileSync(filename).toString('binary');
   var puzdata = puz.parsepuz(contents);
   var outname = filename.replace(/[.](puz|ipuz|jpz|rgz)$/, '.pdf');
@@ -51,16 +96,34 @@ function convert(filename, solution) {
   if (solution) {
     outname = outname.replace('.pdf', '-solution.pdf');
   }
+
+
+  /* Title ARG handling */
+  //console.log("customTitle:", customTitle)
+  //console.log("defaultTitle:", defaultTitle)
+  if (defaultTitle) {
+    var title = "Today's Mini Crossword";
+    console.log("Title: default");
+  } else {
+    if (customTitle != '') {
+      console.log("Title: custom");
+      var title = customTitle;
+    } else {
+      console.log("Title: .puz specified");
+    }
+  }
+
   var options = {
     outfile: outname,
     output: 'download',
     // customizable:
 
-    solution: false,
+    solution: solution,
 
-    // title: "Today's Mini Crossword",
+    /* Puzzle Data */
+    title: title,
     date: true,
-    date_text: 'December 15, 2023',
+    date_text: wordDate,
 
     /* Fonts */
     header_font: 'RobotoSerif',
@@ -68,27 +131,22 @@ function convert(filename, solution) {
     grid_font: 'RobotoMono',
     clue_font: 'AtkinsonHyperlegible',
     footer_font: 'AtkinsonHyperlegible',
-    
+
     header_pt: 32,
-    // header2_pt: document.getElementById('h2FontSize').value*1,
+    // clue_pt: 20,
     // subheader_pt: document.getElementById('sFontSize').value*1,
 
     heading_style: 'normal',
     number_style: 'bold',
     footer_style: 'italic',
 
-    header_align: 'center',
-    header2_align: 'center',
-    subheader_align: 'center',
-
 
     number_pct: 30,
-    // clue_pt: 20,
-    // clue_entry_pt: 20,
+
     grid_size: 180,
     cell_size: 36,
 
-    line_width: 0.9,
+    line_width: 0.8,
     // border-width: 0.6,
     // column_padding: document.getElementById('columnPadding').value*1,
 
@@ -106,7 +164,7 @@ function convert(filename, solution) {
     footer_offset: 0,
 
     shade: false,
-    gray: 0,
+    gray: 0, // this breaks the whole grid for some reason
 
 
     y_align: 'alphabetic',
@@ -129,6 +187,6 @@ function convert(filename, solution) {
 }
 
 if (argv._.length != 1) {
-    throw 'Need exactly one positional arg (path to file to convert)';
+  throw 'Need exactly one positional arg (path to file to convert)';
 }
-convert(argv._[0], argv.solution);
+convert(argv._[0], argv.solution, wordDate, argv.defaulttitle, argv.title);
