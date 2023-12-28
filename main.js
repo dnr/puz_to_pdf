@@ -40,6 +40,7 @@ require("./js/RobotoMono-bold");
 require("./js/RobotoMono-normal");
 require("./js/AtkinsonHyperlegible-bold");
 require("./js/AtkinsonHyperlegible-normal");
+require("./js/AtkinsonHyperlegible-italic");
 
 function convert(filename, solution) {
   var contents = fs.readFileSync(filename).toString('binary');
@@ -54,56 +55,74 @@ function convert(filename, solution) {
     outfile: outname,
     output: 'download',
     // customizable:
-    my_font: '',
+
+    solution: false,
+
+    // title: "Today's Mini Crossword",
+    date: true,
+    date_text: 'December 15, 2023',
+
+    /* Fonts */
+    header_font: 'RobotoSerif',
+    author_font: 'RobotoSerif',
+    grid_font: 'RobotoMono',
+    clue_font: 'AtkinsonHyperlegible',
+    footer_font: 'AtkinsonHyperlegible',
+    
+    header_pt: 32,
+    // header2_pt: document.getElementById('h2FontSize').value*1,
+    // subheader_pt: document.getElementById('sFontSize').value*1,
+
+    heading_style: 'normal',
+    number_style: 'bold',
+    footer_style: 'italic',
+
     header_align: 'center',
     header2_align: 'center',
     subheader_align: 'center',
-    y_align: 'alphabetic',
-    gray: 0,
-    // number: 10,
-    clue_entry_pt: 10,
 
-    header_pt: 40,
-    // header2_pt: document.getElementById('h2FontSize').value*1,
-    // subheader_pt: document.getElementById('sFontSize').value*1,
+
+    number_pct: 30,
+    // clue_pt: 20,
+    // clue_entry_pt: 20,
+    grid_size: 180,
+    cell_size: 36,
+
+    line_width: 0.9,
+    // border-width: 0.6,
+    // column_padding: document.getElementById('columnPadding').value*1,
 
     margin: 160,
     side_margin: 80,
     // bottom_margin: document.getElementById('bottommarginSize').value*72,
 
-    // header_width: document.getElementById('headerWidth').value*.01,
+    header_width: 50,
     grid_padding: 40,
-    under_title_padding: 40,
+    under_title_padding: 50,
+    subheader_mt: 8,
+    clue_spacing: 0.7,
     // header_indent: document.getElementById('hlPadding').value*1,
     // subheader_indent: document.getElementById('slPadding').value*1,
-    // subheader_mt: document.getElementById('hsPadding').value*1,
-
-    line_width: 0.8,
-    border_width: 0.8,
-    // column_padding: document.getElementById('columnPadding').value*1,
-    
-    clue_spacing: 0.5,
-    
-    heading_style: 'normal',
-    number_style: 'bold',
+    footer_offset: 0,
 
     shade: false,
-    solution: solution,
+    gray: 0,
 
-    header_font: 'RobotoSerif',
-    grid_font: 'RobotoMono',
-    clue_font: 'AtkinsonHyperlegible',
 
-    right_header: true,
+    y_align: 'alphabetic',
+
+    right_header: false,
     subheader: true,
     copyright: false,
     // copyright_text: 'Play online at csartisan.org/games',
 
-    // columns: document.getElementById('columns').value,
+    footer: true,
+    footer_text: 'Play online at csartisan.org/games',
+    footer_align: 'center',
+
+    // columns: 2,
     grid_placement: 'top'
-    // logoX: document.getElementById('logoX').value*1,
-    // logoY: document.getElementById('logoY').value*1,
-    // logoS: document.getElementById('logoS').value/100,
+
   };
 
   funcs.puzdata_to_pdf(puzdata, options);

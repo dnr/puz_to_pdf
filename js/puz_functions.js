@@ -3,6 +3,8 @@
 // licensed under MIT license
 // https://opensource.org/licenses/MIT
 
+const { option } = require("yargs");
+
 // Remainder of this code (c) Nam Jin Yoon
 // licensed under MIT license
 // https://opensource.org/licenses/MIT
@@ -20,13 +22,14 @@ function draw_crossword_grid(doc,puzdata,options)
     ,   grid_numbers : true
     ,   x0: 20
     ,   y0: 20
-    ,   cell_size: 24
-    ,   grid_size: 360
+    ,   cell_size: 36
+    ,   grid_size: 180
     ,   gray : 1
     ,   letter_pct : 62
     ,   number_pct: 30
     ,   shade: false
     ,   rebus : []
+    ,   border_radius : 10
     };
     
     for (var key in DEFAULT_OPTIONS) {
@@ -47,6 +50,8 @@ function draw_crossword_grid(doc,puzdata,options)
         var number_size = cell_size*options.number_pct/100;
         var letter_size = cell_size/(100/options.letter_pct);
         var letter_pct_down = .88;
+        var br = 0;
+        // var br = cell_size/5;
 
         doc.setFillColor(options.gray.toString());
         doc.setDrawColor(options.gray.toString());
@@ -54,7 +59,7 @@ function draw_crossword_grid(doc,puzdata,options)
         // Create an unfilled square first
 
         if (filled) {
-            doc.rect(x1,y1,cell_size,cell_size,'F');
+            doc.roundedRect(x1,y1,cell_size,cell_size,br,br, 'F');
         } else if (circle && options.shade) {
             doc.setFillColor('0.85');
             doc.rect(x1,y1,cell_size,cell_size,'F');
@@ -118,265 +123,6 @@ function draw_crossword_grid(doc,puzdata,options)
     }
 }
 
-/** Create a NYT submission (requires jsPDF) **/
-function puzdata_to_nyt(puzdata,options)
-{
-    var DEFAULT_OPTIONS = {
-        margin: 72
-    ,   grid_size : 360
-    ,   address : ''
-    ,   header_pt : 12
-    ,   grid_padding: 72
-    ,   footer_pt: 12
-    ,   clue_width : 252
-    ,   entry_left_padding: 108
-    ,   clue_entry_pt : 12
-    ,   outfile: 'test.pdf'
-    ,   gray: 1
-    ,   header_font: 'NunitoSans-Regular'
-    ,   grid_font: 'NunitoSans-Regular'
-    ,   clue_font: 'NunitoSans-Regular'
-    ,   wc: 0
-    ,   pages: 0
-    ,   coconstructor: ''
-    ,   output: 'preview'
-    ,   letter_pct: 62
-    ,   number_pct: 30
-    ,   line_width: 0.4
-    ,   border_width: 0.4
-    ,   clue_spacing: 1.2
-    ,   heading_style: 'bold'
-    ,   number_style: 'bold'
-    ,   shade: false
-    ,   my_font: ''
-    };
-
-
-
-    for (var key in DEFAULT_OPTIONS) {
-        if (!DEFAULT_OPTIONS.hasOwnProperty(key)) continue;
-        if (!options.hasOwnProperty(key))
-        {
-            options[key] = DEFAULT_OPTIONS[key];
-        }
-    }
-    
-
-    var PTS_PER_IN = 72;
-    var DOC_WIDTH = 8.5 * PTS_PER_IN;
-    var DOC_HEIGHT = 11 * PTS_PER_IN;
-    
-    var margin = options.margin;
-
-    var doc = new jsPDF('portrait','pt','letter');
-
-
-    if (options.my_font.length > 0) {
-        doc.addFileToVFS("MyFont.ttf", options.my_font);
-        doc.addFont("MyFont.ttf", "myFont","normal");
-        //console.log("Font Added");
-    }
-
-    if (options.my_font2.length > 0) {
-        doc.addFileToVFS("MyFont2.ttf", options.my_font2);
-        doc.addFont("MyFont2.ttf", "myFont2","normal");
-        //console.log("Font 2 Added");
-    }
-
-    if (options.bold_font.length > 0) {
-        doc.addFileToVFS("MyFont-Bold.ttf", options.bold_font);
-        doc.addFont("MyFont-Bold.ttf", "myFont","bold");
-        //console.log("Bold Font Added");
-    }
-
-    if (options.bold_font2.length > 0) {
-        doc.addFileToVFS("MyFont2-Bold.ttf", options.bold_font2);
-        doc.addFont("MyFont2-Bold.ttf", "myFont2","bold");
-        //console.log("Bold Font 2 Added");
-    }
-
-    doc.setFont(options.header_font,"normal");
-    doc.setLineWidth(options.line_width);
-
-    
-    function print_headers(doc,headers,pt,xMargin,yMargin) {
-        // print headers; return where the next line would be
-        var x0 = xMargin;
-        var y0 = yMargin+pt;
-        var header_padding = pt*0.2;
-        doc.setFontSize(pt);
-        for (var i=0;i<headers.length;i++) {
-            doc.text(x0,y0,headers[i]);
-            y0 += pt + header_padding;
-        }
-
-        y0 -= (pt + header_padding);
-        return y0;
-    }
-    
-    function print_page_num(doc,pt,margin,doc_height,num) {
-        var x0 = margin;
-        var y0 = doc_height - margin;
-        doc.setFontSize(pt)
-            .text(x0,y0,'Page ' + num.toString());
-    }
-        
-    /** First page: filled grid **/
-    // Print the headers
-    var headers = [];
-    // only include the title if it's a Sunday
-    if (puzdata.width >= 20)
-    {
-        headers.push(puzdata.title);
-    }
-    var address_arr = options.address.split('\n');
-    headers = headers.concat(address_arr);
-    headers.push('');
-
-    if (options.wc==1) {
-    
-        headers.push('Word count: ' + puzdata.nbrClues.toString());
-    }
-
-    var y0 = print_headers(doc,headers,options.header_pt,margin,margin);
-
-    // Add coconstructor info if needed
-    if (options.coconstructor.length > 0) {
-        var headers2 = [];
-        var coconstructor_arr = options.coconstructor.split('\n');
-        headers2 = headers2.concat(coconstructor_arr);
-        headers2.push('');
-        print_headers(doc,headers2,options.header_pt,margin/2 + DOC_WIDTH/2,margin);
-    }
-
-    
-    // Print the filled grid
-    var grid_ypos = y0 + options.grid_padding;
-    // adjust the the grid size if we don't have enough space
-    var grid_size = options.grid_size;
-    if (grid_size > DOC_HEIGHT - grid_ypos - margin - options.footer_pt) {
-        grid_size = DOC_HEIGHT - grid_ypos - margin - options.footer_pt;
-    }
-    // position x so that the grid is centered 
-    var grid_xpos = (DOC_WIDTH - grid_size)/2;
-    var first_page_options = {
-        grid_letters : true
-    ,   grid_numbers : true
-    ,   x0: grid_xpos
-    ,   y0: grid_ypos
-    ,   cell_size: grid_size / puzdata.width
-    ,   gray : options['gray']
-    ,   letter_pct : options['letter_pct']
-    ,   number_pct : options['number_pct']
-    ,   shade : options.shade
-    };
-
-    doc.setFont(options.grid_font,"normal");
-    draw_crossword_grid(doc,puzdata,first_page_options);
-    doc.setFont(options.header_font,"normal");
-
-    if (options.pages==1) {
-        print_page_num(doc,options.footer_pt,margin,DOC_HEIGHT,1);
-    }
-
-
-    // Draw border
-    if (options.border_width > options.line_width) {
-        doc.setLineWidth(options.border_width);
-        doc.rect(grid_xpos-options.border_width/2,grid_ypos-options.border_width/2,grid_size+options.border_width,(grid_size*puzdata.height/puzdata.width)+options.border_width);
-    }
-    
-   
-    /** Remaining pages: clues and entries **/
-    // Set up three arrays: one of clue numbers, one of clues, and one of entries
-    var clueNums = [];
-    var clues = [];
-    var entries = [];
-    headers = [];
-    
-    // Across
-    clues.push('ACROSS'); entries.push(''); clueNums.push('');
-    for (var i=0; i<puzdata.acrossSqNbrs.length; i++) {
-        var num = puzdata.acrossSqNbrs[i].toString();
-        var clue = puzdata.across_clues[num];
-        var entry = puzdata.across_entries[num];
-        clues.push(clue); entries.push(entry); clueNums.push(num);
-    }
-    // Down
-    clues.push('DOWN'); entries.push(''); clueNums.push('');
-    for (var i=0; i<puzdata.downSqNbrs.length; i++) {
-        var num = puzdata.downSqNbrs[i].toString();
-        var clue = puzdata.down_clues[num];
-        var entry = puzdata.down_entries[num];
-        clues.push(clue); entries.push(entry); clueNums.push(num);
-    }
-    
-    var page_num = 2;
-    doc.setFontSize(options.clue_entry_pt);
-    
-    // new page
-    doc.addPage();
-    if (options.pages==1) {
-        print_page_num(doc,options.footer_pt,margin,DOC_HEIGHT,page_num);
-    }
-    var clue_ypos = print_headers(doc,headers,options.header_pt,margin,margin);
-    clue_ypos += options.clue_entry_pt;
-    var num_xpos = margin + 21;
-    var clue_xpos = margin + 30;
-    var entry_xpos = margin + options.clue_width + options.entry_left_padding;
-    var entry_ypos = clue_ypos;
-    
-    for (var i=0;i<clues.length;i++) {
-        var clue = clues[i];
-        var entry = entries[i];
-        var clueNum = clueNums[i];
-        var lines = doc.splitTextToSize(clue,options.clue_width);
-        // check that the clue fits; if not, make a new page
-        if ((clue_ypos + lines.length * options.clue_entry_pt + options.footer_pt + margin > DOC_HEIGHT) || ((clue == 'ACROSS' || clue == 'DOWN') && (clue_ypos + 6 * lines.length * options.clue_entry_pt + options.footer_pt + margin > DOC_HEIGHT) )) {
-            doc.addPage();
-            doc.setFont(options.header_font,"normal");
-            page_num += 1;
-            if (options.pages==1) {
-                print_page_num(doc,options.footer_pt,margin,DOC_HEIGHT,page_num);
-            }
-            clue_ypos = print_headers(doc,headers,options.header_pt,margin,margin);
-            clue_ypos += options.clue_entry_pt;
-            doc.setFont(options.clue_font,"normal");
-            entry_ypos = clue_ypos;
-        }
-        // print the clue
-        for (var j=0; j<lines.length;j++) {
-            if (lines[j]=='ACROSS' || lines[j]=='DOWN') {
-                if (lines[j]=='DOWN') {
-                    clue_ypos += options.clue_entry_pt; 
-                }
-
-                doc.setFont(options.clue_font,options.heading_style);
-                doc.setFontSize(options.clue_entry_pt).text(margin,clue_ypos,lines[j]);
-                doc.setFont(options.clue_font,"normal");
-            } else{
-                doc.setFontSize(options.clue_entry_pt).text(clue_xpos,clue_ypos,lines[j]);
-            }
-            clue_ypos += options.clue_entry_pt*1.2;
-        }
-        // print the entry
-        doc.setFont(options.clue_font,options.number_style);
-        doc.setFontSize(options.clue_entry_pt).text(num_xpos,entry_ypos,clueNum, null, null, "right");
-        doc.setFont(options.clue_font,"normal");
-        doc.setFontSize(options.clue_entry_pt).text(entry_xpos,entry_ypos,entry);
-        
-        // adjust the coordinates (double-spacing)
-        clue_ypos += options.clue_entry_pt*options.clue_spacing;
-        entry_ypos = clue_ypos;
-    }
-    
-    if (options.output=='preview') {
-        PDFObject.embed(doc.output("bloburl"), "#example1");
-    } else if (options.output=='download') {
-        doc.save(options.outfile); 
-    }
-}
-
 /** Create a PDF (requires jsPDF) **/
 
 function puzdata_to_pdf(puzdata,options) {
@@ -401,9 +147,11 @@ function puzdata_to_pdf(puzdata,options) {
     ,   header_align : 'left'
     ,   header2_align: 'right'
     ,   subheader_align: 'left'
+    ,   my_font : ''
     ,   header_font : 'RobotoCondensed'
     ,   clue_font : 'RobotoCondensed'
     ,   grid_font : 'NunitoSans-Regular'
+    ,   author_font: 'RobotoSerif'
     ,   header_pt : 20
     ,   header2_pt : 16
     ,   subheader_pt : 14
@@ -411,7 +159,7 @@ function puzdata_to_pdf(puzdata,options) {
     ,   right_header : false
     ,   subheader : false
     ,   line_width : 0.4
-    ,   border_width : 0.4
+    ,   border_width : options.line_width
     ,   subheader_mt : 4
     ,   shade: true
     ,   letter_pct: 62
@@ -428,6 +176,11 @@ function puzdata_to_pdf(puzdata,options) {
     ,   logoS: 1.0
     ,   header_indent: 0
     ,   subheader_indent: 0
+    ,   footer: false
+    ,   footer_text: 'Play online at csartisan.org/games'
+    ,   footer_align: 'center'
+    ,   footer_pt: 14
+    ,   footer_mt: 4
     };
     
     for (var key in DEFAULT_OPTIONS) {
@@ -478,7 +231,7 @@ function puzdata_to_pdf(puzdata,options) {
     
     // The maximum font size of title and author
     
-    var PTS_PER_IN = 72;
+    var PTS_PER_IN = 74;
     var DOC_WIDTH = 8.5 * PTS_PER_IN;
     var DOC_HEIGHT = 11 * PTS_PER_IN;
     
@@ -497,7 +250,7 @@ function puzdata_to_pdf(puzdata,options) {
     var title_ypos = margin;
     var xalign = options.header_align;
     var baseline = options.y_align;
-    var title = options.header_text;
+    var title = options.title;
 
     //title
     doc = new jsPDF('portrait','pt','letter');
@@ -521,7 +274,7 @@ function puzdata_to_pdf(puzdata,options) {
         title_ypos += options.header_pt/2;
     }
 
-    if (!options.header_text) {
+    if (!options.title) {
         title = puzdata.title;
     }
 
@@ -582,7 +335,7 @@ function puzdata_to_pdf(puzdata,options) {
 
     var subheader_xpos = side_margin + options.subheader_indent;
     var subheader_ypos = title_ypos + 1.15*options.header_pt*(title.length-1) + options.subheader_pt + options.subheader_mt;
-    var subheader_text = options.subheader_text;
+    var subheader_text = 'by ' + puzdata.author;
     var subheader_align = options.subheader_align;
 
     if (options.subheader && subheader_text) {
@@ -591,7 +344,9 @@ function puzdata_to_pdf(puzdata,options) {
 
         max_width = DOC_WIDTH - 2*side_margin;
 
-        doc.setFontSize(options.subheader_pt);
+
+        // set subheader size to 3/8ths of header size, (Figma parity)
+        doc.setFontSize(options.header_pt*0.375);
         subheader_text = doc.splitTextToSize(subheader_text, max_width);
         
         if (subheader_align == 'left') {
@@ -621,7 +376,45 @@ function puzdata_to_pdf(puzdata,options) {
 
     }
 
-    
+    //footer
+
+    var footer_xpos = side_margin;
+    var footer_ypos = margin + header_height + grid_height + options.border_width + options.copyright_pt + 3;
+    var footer_text = options.footer_text;
+    var footer_align = options.footer_align;
+
+    if (options.footer && footer_text) {
+
+        max_width = DOC_WIDTH - 2*side_margin;
+
+        // set footer size to 3/8ths of header size, (Figma parity)
+        doc.setFontSize(options.header_pt*0.375);
+        footer_text = doc.splitTextToSize(footer_text, max_width);
+        
+        if (footer_align == 'left') {
+            if (baseline=='top') {
+                footer_ypos = title_ypos + options.header_pt*title.length + options.footer_mt;  
+            }
+        } else if (footer_align == 'center') {
+            footer_xpos = DOC_WIDTH/2;
+            if (baseline=='top') {
+                footer_ypos = (margin + header_height + grid_height + options.border_width + options.copyright_pt + 3);  
+            }
+        } else if (footer_align == 'right') {
+            footer_xpos = DOC_WIDTH - side_margin;
+            footer_ypos = author_ypos + 1.15*options.header2_pt*(author.length-1) + options.footer_pt + options.footer_mt;    
+            if (baseline=='top') {
+                footer_ypos = author_ypos + 1.15*options.header2_pt*(author.length-1) + options.header2_pt + options.footer_mt;  
+                if ((author.length)*(options.header2_pt) < (title.length)*(options.header_pt)) {
+                    header_height += (footer_text.length)*(options.footer_pt) - ((title.length)*(options.header_pt)-(author.length)*(options.header2_pt))
+                }
+            } else {
+            }
+        }
+
+
+    }
+
     // create the clue strings and clue arrays
     var across_nums = [];
     var across_clues = [];
@@ -665,7 +458,7 @@ function puzdata_to_pdf(puzdata,options) {
 
     // If only two columns, grid size is limited
     if (options.num_columns == 2) {
-        grid_width = 30*puzdata.width;
+        grid_width = options.cell_size*puzdata.width;
     }
 
     var grid_height = (grid_width / puzdata.width) * puzdata.height;
@@ -680,7 +473,7 @@ function puzdata_to_pdf(puzdata,options) {
     
     // Loop through and write to PDF if we find a good fit
     // Find an appropriate font size
-    var clue_pt = options.max_clue_pt;
+    var clue_pt = options.header_pt*0.375;
     var finding_font = true;
     var column_clue_padding = [];
     var line_padding = clue_pt*0;
@@ -769,7 +562,7 @@ function puzdata_to_pdf(puzdata,options) {
 
                     // Set the font to bold for the title
                     if (i==0 && j==0) {
-                        //doc.setFontSize(clue_pt)
+                        // doc.setFontSize(clue_pt)
                         //doc.setFont('helvetica','bold');
                         //doc.text(line_xpos+(col_width/2),line_ypos,line,{align: 'center'});
                         heading_pt += 2;
@@ -809,7 +602,7 @@ function puzdata_to_pdf(puzdata,options) {
         // if clues don't take up all columns, increase clue size
         else if (my_column < options.num_columns -1) {
             //console.log("increasing font size");
-            clue_pt += clue_pt/10;
+            // clue_pt += clue_pt/10;
             clue_padding = clue_pt * options.clue_spacing;
         }          
 
@@ -821,7 +614,7 @@ function puzdata_to_pdf(puzdata,options) {
             if (emergency_button > 20){
                 //console.log("struggle bussing");
                 //console.log("last column padding:" + column_clue_padding[my_column] + " // second-to-last column padding:" + column_clue_padding[my_column-1]);
-                clue_pt = options.max_clue_pt;
+                clue_pt = options.header_pt*0.375;
                 clue_padding = clue_pt * options.clue_spacing;
                 spacing_strictness += 0.1;
                 emergency_button = 0;
@@ -848,9 +641,9 @@ function puzdata_to_pdf(puzdata,options) {
         doc.addImage(options.logo, options.logoX, options.logoY,options.logoS*imgProps.width,options.logoS*imgProps.height);
     }
 
-    var num_margin = doc.getTextWidth('99');
+    var num_margin = 0*doc.getTextWidth('99');
     var num_xpos = side_margin + num_margin;
-    var line_margin = 1.5*doc.getTextWidth(' ');
+    var line_margin = 3.5*doc.getTextWidth(' ');
     var line_xpos = num_xpos + line_margin;  
     var line_ypos = margin + header_height + clue_pt;
     var my_column = 0;
@@ -863,7 +656,7 @@ function puzdata_to_pdf(puzdata,options) {
         
     if (manual_spacing) {
         clue_padding = clue_pt * options.clue_spacing;
-        clue_pt = options.max_clue_pt;
+        clue_pt = options.header_pt*0.375;
     }
 
     for (var k=0; k<clue_arrays.length; k++) {
@@ -933,11 +726,11 @@ function puzdata_to_pdf(puzdata,options) {
 
                     heading_pt = 2;
                     line_ypos += heading_pt;
-                    doc.setFontSize(clue_pt+heading_pt);
-                    doc.setFont(options.clue_font,options.heading_style);
-                    doc.text(line_xpos-(num_margin + line_margin)+(col_width/2),line_ypos,line,{align: 'center'});
+                    doc.setFontSize(options.header_pt*0.375);
+                    doc.setFont(options.clue_font,'bold');
+                    doc.text(line_xpos-(num_margin + line_margin),line_ypos,line,{align: 'center'});
                     line_ypos += clue_pt + line_padding + clue_padding;
-                    doc.setFontSize(clue_pt);
+                    doc.setFontSize(options.header_pt*0.375);
                     doc.setFont(options.clue_font,options.number_style);
                     doc.text(num_xpos,line_ypos,num, null, null, "right");
                 } else {
@@ -983,8 +776,19 @@ function puzdata_to_pdf(puzdata,options) {
     /* Render subheader */
 
     if (options.subheader && subheader_text) {
-        doc.setFontSize(options.subheader_pt);
+        // subheader size is 3/8 of header size, Figma parity
+        doc.setFontSize(options.header_pt*0.375);
+        doc.setFont(options.author_font,'normal');
         doc.text(subheader_xpos,subheader_ypos,subheader_text,{align: subheader_align, baseline: baseline});
+    }
+
+    /* Render date EXPERIMENTAL */
+
+    if (options.date && options.date_text) {
+        // subheader size is 3/8 of header size, Figma parity
+        doc.setFontSize(options.header_pt*0.375);
+        doc.setFont(options.author_font,'normal');
+        doc.text(subheader_xpos,(subheader_ypos-0.75*header_height),options.date_text,{align: subheader_align, baseline: baseline});
     }
   
     
@@ -1015,6 +819,18 @@ function puzdata_to_pdf(puzdata,options) {
 
     }
     
+    /* Render footer EXPERIMENTAL */
+
+    if (options.footer && options.footer_text) {
+        // footer size is 3/8 of header size, Figma parity
+        doc.setFontSize(options.header_pt*0.375);
+        doc.setFont(options.footer_font,options.footer_style);
+        doc.text(footer_xpos
+        ,   (grid_ypos + ((6 + options.footer_offset )*(clue_pt+clue_padding)))
+        ,   options.footer_text
+        ,   {align: footer_align, baseline: baseline});
+    }
+
     /* Draw grid */
 
     if (options.grid_placement=='top') {
@@ -1026,20 +842,21 @@ function puzdata_to_pdf(puzdata,options) {
     ,   grid_numbers : true
     ,   x0: grid_xpos
     ,   y0: grid_ypos
-    ,   cell_size: grid_width / puzdata.width
+    //,   cell_size: grid_width / puzdata.width
+    ,   cell_size: options.cell_size
     ,   gray : options.gray
     ,   number_pct : options.number_pct
     ,   shade : options.shade
     };
 
-    doc.setFont(options.grid_font,'bold');
+    doc.setFont(options.grid_font,'normal');
     doc.setLineWidth(options.line_width);
     draw_crossword_grid(doc,puzdata,grid_options);
 
     // Draw border
     if (options.border_width > options.line_width) {
         doc.setLineWidth(options.border_width);
-        doc.rect(grid_xpos-options.border_width/2,(margin + header_height + 3)-options.border_width/2,grid_width+options.border_width,(grid_width*puzdata.height/puzdata.width)+options.border_width);
+        doc.roundedRect(grid_xpos-options.border_width/2,(margin + header_height + 3)-options.border_width/2,grid_width+options.border_width,(grid_width*puzdata.height/puzdata.width)+options.border_width, 10, 10);
     }
     
     if (options.output=='preview') {
@@ -1050,5 +867,4 @@ function puzdata_to_pdf(puzdata,options) {
 }
 
 exports.draw_crossword_grid = draw_crossword_grid;
-exports.puzdata_to_nyt = puzdata_to_nyt;
 exports.puzdata_to_pdf = puzdata_to_pdf;
