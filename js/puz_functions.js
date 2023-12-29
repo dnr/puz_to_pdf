@@ -95,7 +95,6 @@ function draw_crossword_grid(doc, puzdata, options) {
 
         if (filled) {
             //doc.roundedRect(x1, y1, cell_size, cell_size, cr, cr, 'F');
-            ctx.quality = 'best'
             ctx.roundRect(0, 0, cell_size, cell_size, cornerRadii); ctx.fill();
             // Pass ctx drawing to jsPDF as image
             doc.addImage(canvas.toDataURL(), '', x1, y1, cell_size, cell_size);
@@ -107,7 +106,6 @@ function draw_crossword_grid(doc, puzdata, options) {
         }
 
         //doc.rect(x1, y1, cell_size, cell_size);
-        ctx.quality = 'best'
         ctx.roundRect(0, 0, cell_size, cell_size, cornerRadii); ctx.stroke();
         // Pass ctx drawing to jsPDF as image
         doc.addImage(canvas.toDataURL(), '', x1, y1, cell_size, cell_size);
