@@ -1,17 +1,27 @@
-njyoon's fork of Crossword Nexus' puz to pdf converter, hacked on to work in node.
+`puz-to-pdf-csartisan` is a Node.js script that converts `.puz` files to `.pdf` files in the style of the CSArtisan print design. This is a useful tool for creating game graphics to be featured in the CSArtisan print. Currently, the converter only supports `.puz`, `.ipuz`, `.jpz`, and `.rgz` files.
 
-Many .puz files work well, but some require tweaking options (at which point you
-might want to use the original at
-[https://njyoon.github.io/pdf](https://njyoon.github.io/pdf)).
-
-Usage:
-
+## Usage
+```bash
+./main.js my.puz -g -d [MMDDYY]
 ```
-./main.js my.puz
-```
+Simply run the `main.js` file with the `.puz` file you wish to format from and the date in MMDDYY format (i.e. `122523` is December 25, 2023).
+This script only really works for **Mini Crosswords** (5x5 to 7x7), any larger and the formatting will start to break. I plan to make a fix this in the future. 
+### Arguments
+`-d [MMDDYY]` or `--date [MMDDYY]` - specify the publish date above the title (required)
+`-t [title]`  or `--title [title]` - specify custom title (optional)
+`-g` or `--defaulttitle` - sets title to "Today's Mini Crossword" (optional, recommended)
+
+### Variables
+This script doesn't have *much flexibility* when it comes to layout shifting and such. At the moment, the only thing that you should have to change on a frequent basis is the `footer-offset` in `main.js`. I plan to either remove the need for this or make it a command arg.
 
 ---
-
-These tools add some additional editing options to Crossword Nexus's [PUZ to PDF Converter](https://crosswordnexus.com/apps/puz-to-pdf/) and [PUZ TO NYT Converter](https://crosswordnexus.com/apps/puz-to-nyt/).
-
-Background image from [U.S. Patent No. 1,575,181 (issued March 2, 1926)](https://patents.google.com/patent/US1575181).
+## To-do
+- [ ] Fix footer layout shift
+- [ ] ... or make it a command arg
+- [ ] Version for 15x15 (or 21x21)
+- [ ] Convert grid drawing to `svg`
+- [ ] Fix grid cropping
+- [ ] Verbosity pass
+- [x] Corner radius on grid
+---
+This application was made possible by the work of [David Reiss](https://github.com/dnr), [Nam Jin Yoon](https://github.com/njyoon), and [Alex Boisvert](https://github.com/boisvert42).
