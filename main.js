@@ -125,6 +125,7 @@ function convert(filename, solution, wordDate, defaultTitle, customTitle) {
     date: true,
     date_text: wordDate,
 
+
     /* Fonts */
     header_font: 'RobotoSerif',
     author_font: 'RobotoSerif',
@@ -133,25 +134,20 @@ function convert(filename, solution, wordDate, defaultTitle, customTitle) {
     footer_font: 'AtkinsonHyperlegible',
 
     header_pt: 32,
-    // clue_pt: 20,
-    // subheader_pt: document.getElementById('sFontSize').value*1,
 
     heading_style: 'normal',
     number_style: 'bold',
     footer_style: 'italic',
 
-
-    number_pct: 30,
+    number_pct: 28,
 
     grid_size: 180,
     cell_size: 36,
 
     line_width: 0.8,
     border: false,
-    // border-width: 0.6,
-    // column_padding: document.getElementById('columnPadding').value*1,
 
-    margin: 160,
+    margin: 160, // should be approx. 160
     side_margin: 80,
     // bottom_margin: document.getElementById('bottommarginSize').value*72,
 
@@ -162,7 +158,7 @@ function convert(filename, solution, wordDate, defaultTitle, customTitle) {
     clue_spacing: 0.7,
     // header_indent: document.getElementById('hlPadding').value*1,
     // subheader_indent: document.getElementById('slPadding').value*1,
-    footer_offset: 0,
+    footer_offset: 0, // default: 0
 
     shade: false,
     gray: 0, // this breaks the whole grid for some reason

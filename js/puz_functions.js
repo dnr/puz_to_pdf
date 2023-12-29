@@ -5,17 +5,27 @@
 
 const { option } = require("yargs");
 
+const { createCanvas } = require('canvas');
+const canvas = createCanvas(629, 814);
+const ctx = canvas.getContext('2d');
+
+
 // Remainder of this code (c) Nam Jin Yoon
 // licensed under MIT license
 // https://opensource.org/licenses/MIT
 
 window.jsPDF = window.jspdf.jsPDF;
 
-
 /** Draw a crossword grid (requires jsPDF) **/
 
+var PTS_PER_IN = 74;
+var DOC_WIDTH = 8.5 * PTS_PER_IN;
+var DOC_HEIGHT = 11 * PTS_PER_IN;
+
+console.log("Doc Size:", DOC_WIDTH, DOC_HEIGHT)
 
 function draw_crossword_grid(doc, puzdata, options) {
+
     var DEFAULT_OPTIONS = {
         grid_letters: true
         , grid_numbers: true
@@ -23,7 +33,7 @@ function draw_crossword_grid(doc, puzdata, options) {
         , y0: 20
         , cell_size: 36
         , grid_size: 180
-        , gray: 1
+        , gray: 0
         , letter_pct: 62
         , number_pct: 30
         , shade: false
@@ -41,15 +51,20 @@ function draw_crossword_grid(doc, puzdata, options) {
     var PTS_TO_IN = 72;
     var cell_size = options.cell_size;
 
-
+    
     /** Function to draw a square **/
     function draw_square(doc, x1, y1, cell_size, number, letter, filled, circle, corner) {
-        var number_offset = cell_size / 18;
+
+        const canvas = createCanvas(cell_size, cell_size);
+        const ctx = canvas.getContext('2d');
+
+        var number_offset = cell_size / 12;
         var number_size = cell_size * options.number_pct / 100;
         var letter_size = cell_size / (100 / options.letter_pct);
         var letter_pct_down = .88;
-        var br = 0;
-        // var br = cell_size/5;
+
+        /* TODO | expose in settings later */
+        var cr = 10;
 
         // Finds what corner the current square is
         if (corner !== 0) {
@@ -62,20 +77,45 @@ function draw_crossword_grid(doc, puzdata, options) {
 
         // Create an unfilled square first
 
+        function createCornerRadii(corner, cr) {
+            const cornerRadii = [0, 0, 0, 0];
+          
+            if (corner >= 1 && corner <= 4) {
+              cornerRadii[corner - 1] = cr; // Use the provided cr value
+            }
+          
+            return cornerRadii;
+          }
+        
+        // Set ctx radii to corresponding corner of the square
+        const cornerRadii = createCornerRadii(corner, cr);
+        if (corner !== 0) {
+            console.log("Corner radius:", cornerRadii);
+        }
+
         if (filled) {
-            doc.roundedRect(x1, y1, cell_size, cell_size, br, br, 'F');
+            //doc.roundedRect(x1, y1, cell_size, cell_size, cr, cr, 'F');
+            ctx.quality = 'best'
+            ctx.roundRect(0, 0, cell_size, cell_size, cornerRadii); ctx.fill();
+            // Pass ctx drawing to jsPDF as image
+            doc.addImage(canvas.toDataURL(), '', x1, y1, cell_size, cell_size);
+            // doc.addImage(ctx.canvas, '', x1, y1, cell_size, cell_size);
         } else if (circle && options.shade) {
             doc.setFillColor('0.85');
             doc.rect(x1, y1, cell_size, cell_size, 'F');
             doc.setFillColor(options.gray.toString());
         }
 
-        doc.rect(x1, y1, cell_size, cell_size);
-
+        //doc.rect(x1, y1, cell_size, cell_size);
+        ctx.quality = 'best'
+        ctx.roundRect(0, 0, cell_size, cell_size, cornerRadii); ctx.stroke();
+        // Pass ctx drawing to jsPDF as image
+        doc.addImage(canvas.toDataURL(), '', x1, y1, cell_size, cell_size);
+        // doc.addImage(ctx.canvas, '', x1, y1, cell_size, cell_size);
 
         //numbers
         doc.setFontSize(number_size);
-        doc.text(x1 + number_offset, y1 + number_size, number);
+        doc.text(x1 + number_offset, y1 + number_size + 1, number);
 
         //letters 
 
@@ -102,17 +142,19 @@ function draw_crossword_grid(doc, puzdata, options) {
 
     var width = puzdata.width;
     var height = puzdata.height;
-    // console.log(puzdata.width, puzdata.height)
+    console.log("WxH:", puzdata.width, puzdata.height)
 
     // Function to set the "corner" variable based on location
-    function setCorner(i, j) {
+    function setCorner(i, j, width, height) {
+        var w = width - 1
+        var h = height - 1
         if (i === 0 && j === 0) {
             return 1; // Top-left corner
-        } else if (i === 0 && j === 4) {
+        } else if (i === 0 && j === h) {
             return 2; // Top-right corner
-        } else if (i === 4 && j === 0) {
+        } else if (i === w && j === h) {
             return 3; // Bottom-left corner
-        } else if (i === 4 && j === 4) {
+        } else if (i === w && j === 0) {
             return 4; // Bottom-right corner
         } else {
             return 0; // Not a corner
@@ -125,7 +167,7 @@ function draw_crossword_grid(doc, puzdata, options) {
             var x_pos = options.x0 + j * cell_size;
             var grid_index = j + i * width;
             var filled = false;
-            let corner = setCorner(i, j);
+            let corner = setCorner(i, j, width, height);
             /*        
             // Check to see if square is a corner
             if ((i+" "+j) === "0 0" || (i + " " + j) === "0 4" || (i + " " + j) === "4 0" || (i + " " + j) === "4 4") {
@@ -146,7 +188,7 @@ function draw_crossword_grid(doc, puzdata, options) {
 
             // Circle
             var circle = puzdata.circles[grid_index];
-            console.log(i,j)
+            // console.log(i,j)
             draw_square(doc, x_pos, y_pos, cell_size, number, letter, filled, circle, corner);
         }
     }
@@ -259,9 +301,9 @@ function puzdata_to_pdf(puzdata, options) {
 
     // The maximum font size of title and author
 
-    var PTS_PER_IN = 74;
+    /*var PTS_PER_IN = 74;
     var DOC_WIDTH = 8.5 * PTS_PER_IN;
-    var DOC_HEIGHT = 11 * PTS_PER_IN;
+    var DOC_HEIGHT = 11 * PTS_PER_IN;*/
 
     var margin = options.margin;
     var side_margin = options.side_margin;
@@ -849,7 +891,7 @@ function puzdata_to_pdf(puzdata, options) {
         doc.setFontSize(options.header_pt * 0.375);
         doc.setFont(options.footer_font, options.footer_style);
         doc.text(footer_xpos
-            , (grid_ypos + ((6 + options.footer_offset) * (clue_pt + clue_padding)))
+            , (grid_ypos + ((5 + options.footer_offset) * (clue_pt + clue_padding)))
             , options.footer_text
             , { align: footer_align, baseline: baseline });
     }
