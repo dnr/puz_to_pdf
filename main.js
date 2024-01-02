@@ -158,7 +158,7 @@ function convert(filename, solution, wordDate, defaultTitle, customTitle) {
     clue_spacing: 0.7,
     // header_indent: document.getElementById('hlPadding').value*1,
     // subheader_indent: document.getElementById('slPadding').value*1,
-    footer_offset: 0, // default: 0
+    footer_offset: 1, // default: 1
 
     shade: false,
     gray: 0, // this breaks the whole grid for some reason

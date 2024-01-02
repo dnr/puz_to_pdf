@@ -64,7 +64,7 @@ function draw_crossword_grid(doc, puzdata, options) {
         var letter_pct_down = .88;
 
         /* TODO | expose in settings later */
-        var cr = 10;
+        var cr = 8; // should be about 8, maybe less
 
         // Finds what corner the current square is
         if (corner !== 0) {
@@ -74,41 +74,47 @@ function draw_crossword_grid(doc, puzdata, options) {
         
         doc.setFillColor(options.gray.toString());
         doc.setDrawColor(options.gray.toString());
+        ctx.lineWidth = 1;
 
-        // Create an unfilled square first
-
+        // Set array of border radii based on location
         function createCornerRadii(corner, cr) {
             const cornerRadii = [0, 0, 0, 0];
-          
+            
             if (corner >= 1 && corner <= 4) {
-              cornerRadii[corner - 1] = cr; // Use the provided cr value
+                cornerRadii[corner - 1] = cr;
             }
-          
+            
             return cornerRadii;
-          }
-        
+        }
         // Set ctx radii to corresponding corner of the square
         const cornerRadii = createCornerRadii(corner, cr);
         if (corner !== 0) {
             console.log("Corner radius:", cornerRadii);
         }
 
+        // Create an unfilled square first
         if (filled) {
-            //doc.roundedRect(x1, y1, cell_size, cell_size, cr, cr, 'F');
+
+            //doc.roundedRect(x1, y1, cell_size, cell_size, cr, cr, 'F'); // old
             ctx.roundRect(0, 0, cell_size, cell_size, cornerRadii); ctx.fill();
+
             // Pass ctx drawing to jsPDF as image
             doc.addImage(canvas.toDataURL(), '', x1, y1, cell_size, cell_size);
+            // doc.addImage(canvas.getContext("2d"), '', x1, y1, cell_size, cell_size);
             // doc.addImage(ctx.canvas, '', x1, y1, cell_size, cell_size);
+
         } else if (circle && options.shade) {
             doc.setFillColor('0.85');
             doc.rect(x1, y1, cell_size, cell_size, 'F');
             doc.setFillColor(options.gray.toString());
         }
 
-        //doc.rect(x1, y1, cell_size, cell_size);
+        //doc.rect(x1, y1, cell_size, cell_size); // super old
         ctx.roundRect(0, 0, cell_size, cell_size, cornerRadii); ctx.stroke();
+
         // Pass ctx drawing to jsPDF as image
         doc.addImage(canvas.toDataURL(), '', x1, y1, cell_size, cell_size);
+        // doc.addImage(canvas.getContext("2d"), '', x1, y1, cell_size, cell_size);
         // doc.addImage(ctx.canvas, '', x1, y1, cell_size, cell_size);
 
         //numbers
