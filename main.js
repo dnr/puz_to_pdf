@@ -108,6 +108,7 @@ function convert(filename, solution, wordDate, defaultTitle, customTitle) {
     if (customTitle != '') {
       console.log("Title: custom");
       var title = customTitle;
+      console.log("Custom Title:", customTitle)
     } else {
       console.log("Title: .puz specified");
     }
@@ -115,7 +116,7 @@ function convert(filename, solution, wordDate, defaultTitle, customTitle) {
 
   var options = {
     outfile: outname,
-    output: 'download',
+    output: 'download', // download or preview
     // customizable:
 
     solution: solution,

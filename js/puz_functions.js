@@ -67,8 +67,8 @@ function draw_crossword_grid(doc, puzdata, options) {
         var cr = 8; // should be about 8, maybe less
 
         // Finds what corner the current square is
-        if (corner !== 0) {
-            // Do something with the corner value (1, 2, 3, or 4)
+        if (corner !== 4) {
+            // Do something with the corner value (0, 1, 2, or 3)
             console.log(`i: ${i}, j: ${j}, corner: ${corner}`);
         }
         
@@ -80,15 +80,15 @@ function draw_crossword_grid(doc, puzdata, options) {
         function createCornerRadii(corner, cr) {
             const cornerRadii = [0, 0, 0, 0];
             
-            if (corner >= 1 && corner <= 4) {
-                cornerRadii[corner - 1] = cr;
+            if (corner >= 0 && corner <= 3) {
+                cornerRadii[corner] = cr;
             }
             
             return cornerRadii;
         }
         // Set ctx radii to corresponding corner of the square
         const cornerRadii = createCornerRadii(corner, cr);
-        if (corner !== 0) {
+        if (corner !== 4) {
             console.log("Corner radius:", cornerRadii);
         }
 
@@ -98,9 +98,13 @@ function draw_crossword_grid(doc, puzdata, options) {
             //doc.roundedRect(x1, y1, cell_size, cell_size, cr, cr, 'F'); // old
             ctx.roundRect(0, 0, cell_size, cell_size, cornerRadii); ctx.fill();
 
-            // Pass ctx drawing to jsPDF as image
+            // TODO | Pass CTX drawing to jsPDF as an SVG
+            // canvas.toDataURL will only export a PNG. Not an SVG.
             doc.addImage(canvas.toDataURL(), '', x1, y1, cell_size, cell_size);
             // doc.addImage(canvas.getContext("2d"), '', x1, y1, cell_size, cell_size);
+            // doc.addSvg(canvas.getContext("2d"), x1, y1, cell_size, cell_size);
+            // doc.addSvg(canvas.toDataURL, x1, y1, cell_size, cell_size);
+            // canvas.getContext("2d")
             // doc.addImage(ctx.canvas, '', x1, y1, cell_size, cell_size);
 
         } else if (circle && options.shade) {
@@ -115,6 +119,7 @@ function draw_crossword_grid(doc, puzdata, options) {
         // Pass ctx drawing to jsPDF as image
         doc.addImage(canvas.toDataURL(), '', x1, y1, cell_size, cell_size);
         // doc.addImage(canvas.getContext("2d"), '', x1, y1, cell_size, cell_size);
+        // canvas.getContext("2d")
         // doc.addImage(ctx.canvas, '', x1, y1, cell_size, cell_size);
 
         //numbers
@@ -153,15 +158,15 @@ function draw_crossword_grid(doc, puzdata, options) {
         var w = width - 1
         var h = height - 1
         if (i === 0 && j === 0) {
-            return 1; // Top-left corner
+            return 0; // Top-left corner
         } else if (i === 0 && j === h) {
-            return 2; // Top-right corner
+            return 1; // Top-right corner
         } else if (i === w && j === h) {
-            return 3; // Bottom-left corner
+            return 2; // Bottom-left corner
         } else if (i === w && j === 0) {
-            return 4; // Bottom-right corner
+            return 3; // Bottom-right corner
         } else {
-            return 0; // Not a corner
+            return 4; // Not a corner
         }
     }
 
@@ -931,16 +936,19 @@ function puzdata_to_pdf(puzdata, options) {
         ,   grid_width + options.border_width
         ,   (grid_width * puzdata.height / puzdata.width) + options.border_width
         // border radius
-        ,   0, 0
+        ,   8, 8
         );
     }
+
+    // doc.setLineWidth(options.border_width);
+    // doc.lines([[2,2],[-2,2],[1,1,2,2,3,3],[2,1]], 212,110, [1,1], 'S', true); // line, line, bezier curve, line
 
     if (options.output == 'preview') {
         PDFObject.embed(doc.output("bloburl"), "#example1");
     } else if (options.output == 'download') {
+        doc.autoPrint({variant: 'non-conform'});
         doc.save(options.outfile);
-    }
-}
+    }}
 
 exports.draw_crossword_grid = draw_crossword_grid;
 exports.puzdata_to_pdf = puzdata_to_pdf;
